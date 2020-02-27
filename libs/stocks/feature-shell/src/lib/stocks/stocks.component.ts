@@ -7,37 +7,58 @@ import { PriceQueryFacade } from '@coding-challenge/stocks/data-access-price-que
   templateUrl: './stocks.component.html',
   styleUrls: ['./stocks.component.css']
 })
+
 export class StocksComponent implements OnInit {
   stockPickerForm: FormGroup;
-  symbol: string;
-  period: string;
-
+  maxLimitDate = new Date();
   quotes$ = this.priceQuery.priceQueries$;
 
-  timePeriods = [
-    { viewValue: 'All available data', value: 'max' },
-    { viewValue: 'Five years', value: '5y' },
-    { viewValue: 'Two years', value: '2y' },
-    { viewValue: 'One year', value: '1y' },
-    { viewValue: 'Year-to-date', value: 'ytd' },
-    { viewValue: 'Six months', value: '6m' },
-    { viewValue: 'Three months', value: '3m' },
-    { viewValue: 'One month', value: '1m' }
-  ];
+  constructor(private fb: FormBuilder,
+    private priceQuery: PriceQueryFacade) {
+  }
 
-  constructor(private fb: FormBuilder, private priceQuery: PriceQueryFacade) {
-    this.stockPickerForm = fb.group({
+  ngOnInit() {
+    this.getStockPickerForm();
+  }
+
+  // intialize the formgroup
+  getStockPickerForm(): void {
+    this.stockPickerForm = this.fb.group({
       symbol: [null, Validators.required],
-      period: [null, Validators.required]
+      dateFrom: [null, Validators.required],
+      dateTo: [null, Validators.required]
     });
   }
 
-  ngOnInit() {}
-
-  fetchQuote() {
+  fetchQuote(): void {
     if (this.stockPickerForm.valid) {
-      const { symbol, period } = this.stockPickerForm.value;
-      this.priceQuery.fetchQuote(symbol, period);
+      const { symbol, dateFrom, dateTo } = this.stockPickerForm.value;
+      if (dateFrom && dateTo) {
+        this.priceQuery.fetchQuote(symbol, dateFrom, dateTo);
+      }
+      else {
+        console.log("No time-frame selected");
+      }
+    }
+  }
+
+  public getStartDateChange(date): void {
+    const getToDate = date.value.getTime()
+    const dateTo = this.stockPickerForm.controls.dateTo.value;
+    if (dateTo) {
+      if (getToDate > dateTo.getTime()) {
+        this.stockPickerForm.controls.dateFrom.patchValue(dateTo)
+      };
+    }
+  }
+
+  public getEndDateChange(date): void {
+    const getEndDate = date.value.getTime()
+    const dateFrom = this.stockPickerForm.controls.dateFrom.value;
+    if (dateFrom) {
+      if (getEndDate < dateFrom.getTime()) {
+        this.stockPickerForm.controls.dateTo.patchValue(dateFrom)
+      }
     }
   }
 }
