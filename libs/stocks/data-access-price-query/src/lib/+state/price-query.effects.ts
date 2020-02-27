@@ -6,7 +6,7 @@ import {
 } from '@coding-challenge/stocks/data-access-app-config';
 import { Effect } from '@ngrx/effects';
 import { DataPersistence } from '@nrwl/nx';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import {
   FetchPriceQuery,
   PriceQueryActionTypes,
@@ -14,7 +14,7 @@ import {
   PriceQueryFetchError
 } from './price-query.actions';
 import { PriceQueryPartialState } from './price-query.reducer';
-import { PriceQueryResponse, PriceQuery } from './price-query.type';
+import { PriceQueryResponse } from './price-query.type';
 
 @Injectable()
 export class PriceQueryEffects {
@@ -25,20 +25,12 @@ export class PriceQueryEffects {
         return this.httpClient
           .get(
             `${this.env.apiURL}/beta/stock/${action.symbol}/chart/${
-            'max'
+              action.period
             }?token=${this.env.apiKey}`
           )
-          .pipe(map((pricedQuery: PriceQueryResponse[]) =>
-            pricedQuery.filter(priceQuery => {
-              const respDate = new Date(priceQuery.date + ' 0:0:0');
-              const minDate = action.dateFrom.getTime();
-              const maxDate = action.dateTo.getTime();
-              return (respDate.getTime() >= minDate && respDate.getTime() <= maxDate)
-            })),
-            switchMap(pricedQuery => {
-              return [new PriceQueryFetched(pricedQuery as PriceQueryResponse[]),
-              ];
-            }))
+          .pipe(
+            map(resp => new PriceQueryFetched(resp as PriceQueryResponse[]))
+          );
       },
 
       onError: (action: FetchPriceQuery, error) => {
@@ -51,5 +43,5 @@ export class PriceQueryEffects {
     @Inject(StocksAppConfigToken) private env: StocksAppConfig,
     private httpClient: HttpClient,
     private dataPersistence: DataPersistence<PriceQueryPartialState>
-  ) { }
+  ) {}
 }
