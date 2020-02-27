@@ -10,8 +10,6 @@ import { RouterModule } from '@angular/router';
 import { SharedUiChartModule } from '@coding-challenge/shared/ui/chart';
 import { StocksComponent } from './stocks/stocks.component';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 
 @NgModule({
   imports: [
@@ -24,9 +22,7 @@ import { MatNativeDateModule } from '@angular/material/core';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    SharedUiChartModule,
-    MatDatepickerModule,
-    MatNativeDateModule
+    SharedUiChartModule
   ],
   declarations: [StocksComponent]
 })
